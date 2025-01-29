@@ -8,7 +8,7 @@ const containerWorkouts = document.querySelector('.workouts');
 const inputType = document.querySelector('.form__input--type');
 const inputDistance = document.querySelector('.form__input--distance');
 const inputDuration = document.querySelector('.form__input--duration');
-const inputCadence = document.querySelector('.form__input--cadence');
+const inputSteps = document.querySelector('.form__input--steps');
 const inputElevation = document.querySelector('.form__input--elevation');
 
 const randomPhrases = function (str) {
@@ -27,6 +27,8 @@ const phrases = randomPhrases([
   "The only bad workout is the one that didn't happen.",
 ]);
 
+let map, mapEvent; // turns 'in block' defined functions into global functions
+
 if (navigator.geolocation)
   navigator.geolocation.getCurrentPosition(
     function (position) {
@@ -35,33 +37,55 @@ if (navigator.geolocation)
 
       const coords = [latitude, longitude];
 
-      const map = L.map('map').setView(coords, 13);
-      // console.log(map);
+      map = L.map('map').setView(coords, 13);
 
       L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      map.on('click', function (mapEvent) {
-        console.log(mapEvent);
-        const { lat, lng } = mapEvent.latlng;
-        console.log(lat, lng);
-
-        L.marker([lat, lng])
-          .addTo(map)
-          .bindPopup(
-            L.popup({
-              autoClose: false,
-              closeOnClick: false,
-              className: 'running-popup', //custom css class
-            })
-          )
-          .setPopupContent(phrases())
-          .openPopup();
+      //handles clicks on map
+      map.on('click', function (mapE) {
+        mapEvent = mapE;
+        form.classList.remove('hidden');
+        inputDistance.focus();
       });
     },
     function () {
-      alert('Could not locate your position');
+      alert('Could not get your position');
     }
   );
+
+form.addEventListener('submit', function (e) {
+  e.preventDefault(); //prevents page from reloading. Form deauflt behavior reloads after submitting :(
+
+  //clears input feilds
+  inputDistance.value =
+    inputDuration.value =
+    inputSteps.value =
+    inputElevation.value =
+      '';
+
+  //displays marker
+  const { lat, lng } = mapEvent.latlng;
+  console.log(mapEvent);
+  console.log(lat, lng);
+
+  L.marker([lat, lng])
+    .addTo(map)
+    .bindPopup(
+      L.popup({
+        autoClose: false,
+        closeOnClick: false,
+        className: 'running-popup', //custom css class
+      })
+    )
+    .setPopupContent(phrases())
+    .openPopup();
+});
+
+//toggles steps and elevation based on the form type
+inputType.addEventListener('change', function () {
+  inputElevation.closest('.form__row').classList.toggle('form__row--hidden'); //closest selects parents class
+  inputSteps.closest('.form__row').classList.toggle('form__row--hidden');
+});
