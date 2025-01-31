@@ -119,16 +119,39 @@ class App {
   }
 
   _newWorkout(e) {
+    const validInputsHelper = (...inputs) =>
+      inputs.every(inp => Number.isFinite(inp)); //... converts number to array, .every checks if the inputs pass the following condition
+
     e.preventDefault(); //prevents page from reloading. Form deauflt behavior reloads after submitting :(
 
-    //clears input feilds
-    inputDistance.value =
-      inputDuration.value =
-      inputSteps.value =
-      inputElevation.value =
-        '';
+    //get data from form
+    const type = inputType.value;
+    const distance = +inputDistance.value; // '+' converts string to number
+    const duration = +inputDuration.value;
 
-    //displays marker
+    // if workout running --> create running object
+    if (type === 'running') {
+      const steps = +inputSteps.value;
+      // check if data is valid
+      if (
+        // !Number.isFinite(distance) ||
+        // !Number.isFinite(duration) ||
+        // !Number.isFinite(steps)
+        !validInputsHelper[(distance, duration, steps)]
+      )
+        return alert('Inputs have to be positive numbers');
+    }
+    // if workout cycling --> create cycling object
+    if (type === 'cycling') {
+      const evlevation = +inputElevation.value;
+      // check if data is valid
+      if (!validInputsHelper[(distance, duration, evlevation)])
+        return alert('Inputs have to be a positive number');
+    }
+    // add new object workout to array
+
+    //render workout on map as a marker
+
     const { lat, lng } = this.#mapEvent.latlng;
     console.log(lat, lng);
 
@@ -143,6 +166,15 @@ class App {
       )
       .setPopupContent(phrases())
       .openPopup();
+
+    //hide form + clear input feilds
+
+    //clears input feilds
+    inputDistance.value =
+      inputDuration.value =
+      inputSteps.value =
+      inputElevation.value =
+        '';
   }
 }
 
