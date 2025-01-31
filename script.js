@@ -27,7 +27,48 @@ const phrases = randomPhrases([
   "The only bad workout is the one that didn't happen.",
 ]);
 
-let map, mapEvent; // turns 'in block' defined functions into global functions
+class Workout {
+  //feilds
+  date = new Date();
+  id = (Date.now() + '').slice(-10);
+
+  constructor(coords, distance, duration) {
+    this.coords = coords; // [lat , lng]
+    this.distance = distance; // in miles
+    this.duration = duration; // in min
+  }
+}
+
+class Running extends Workout {
+  constructor(coords, distance, duration, steps) {
+    super(coords, distance, duration);
+    this.steps = steps;
+    this.clacPace();
+  }
+
+  clacPace() {
+    // min/mi
+    this.pace = this.duration / this.distance;
+    return this.pace;
+  }
+}
+
+class Cycling extends Workout {
+  constructor(coords, distance, duration, elevationGain) {
+    super(coords, distance, duration);
+    this.elevationGain = elevationGain;
+    this.claclSpeed();
+  }
+
+  claclSpeed() {
+    // mi/h
+    this.speed = this.distance / (this.duration / 60);
+    return this.speed;
+  }
+}
+
+///////////////////////////////////////////////////////
+//Application arcitecture
 
 class App {
   #map; //private property defined only in this object
@@ -38,7 +79,7 @@ class App {
     form.addEventListener('submit', this._newWorkout.bind(this)); //'this' on event handler function will always point to the DOM element
 
     //toggles steps and elevation based on the form type
-    inputType.addEventListener('change', this._toggleWorkoutType.bind(this));
+    inputType.addEventListener('change', this._toggleWorkoutType);
   }
   _getPosition() {
     if (navigator.geolocation)
