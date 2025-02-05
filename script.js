@@ -3,14 +3,6 @@
 // prettier-ignore
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-const form = document.querySelector('.form');
-const containerWorkouts = document.querySelector('.workouts');
-const inputType = document.querySelector('.form__input--type');
-const inputDistance = document.querySelector('.form__input--distance');
-const inputDuration = document.querySelector('.form__input--duration');
-const inputSteps = document.querySelector('.form__input--steps');
-const inputElevation = document.querySelector('.form__input--elevation');
-
 const randomPhrases = function (str) {
   return function () {
     const randomIndex = Math.floor(Math.random() * str.length);
@@ -40,6 +32,7 @@ class Workout {
 }
 
 class Running extends Workout {
+  type = 'running'; // same as this.type = running
   constructor(coords, distance, duration, steps) {
     super(coords, distance, duration);
     this.steps = steps;
@@ -54,9 +47,10 @@ class Running extends Workout {
 }
 
 class Cycling extends Workout {
-  constructor(coords, distance, duration, elevationGain) {
+  type = 'cycling';
+  constructor(coords, distance, duration, elevation) {
     super(coords, distance, duration);
-    this.elevationGain = elevationGain;
+    this.elevation = elevation;
     this.claclSpeed();
   }
 
@@ -70,9 +64,18 @@ class Cycling extends Workout {
 ///////////////////////////////////////////////////////
 //Application arcitecture
 
+const form = document.querySelector('.form');
+const containerWorkouts = document.querySelector('.workouts');
+const inputType = document.querySelector('.form__input--type');
+const inputDistance = document.querySelector('.form__input--distance');
+const inputDuration = document.querySelector('.form__input--duration');
+const inputSteps = document.querySelector('.form__input--steps');
+const inputElevation = document.querySelector('.form__input--elevation');
+
 class App {
   #map; //private property defined only in this object
   #mapEvent;
+  #workouts = [];
   constructor() {
     this._getPosition(); //constructor is executed when page loads
 
@@ -121,6 +124,7 @@ class App {
   _newWorkout(e) {
     const validInputsHelper = (...inputs) =>
       inputs.every(inp => Number.isFinite(inp)); //... converts number to array, .every checks if the inputs pass the following condition
+    const isPositiveHelper = (...inputs) => inputs.every(inp => inp > 0);
 
     e.preventDefault(); //prevents page from reloading. Form deauflt behavior reloads after submitting :(
 
@@ -128,6 +132,8 @@ class App {
     const type = inputType.value;
     const distance = +inputDistance.value; // '+' converts string to number
     const duration = +inputDuration.value;
+    const { lat, lng } = this.#mapEvent.latlng; //destructuring returns object
+    let workout;
 
     // if workout running --> create running object
     if (type === 'running') {
@@ -137,35 +143,35 @@ class App {
         // !Number.isFinite(distance) ||
         // !Number.isFinite(duration) ||
         // !Number.isFinite(steps)
-        !validInputsHelper[(distance, duration, steps)]
+        !validInputsHelper(distance, duration, steps) ||
+        !isPositiveHelper(distance, duration, steps)
       )
-        return alert('Inputs have to be positive numbers');
+        return alert(
+          'All inputs have to be filled in and with positive numbers'
+        );
+
+      workout = new Running([lat, lng], distance, duration, steps);
     }
     // if workout cycling --> create cycling object
     if (type === 'cycling') {
-      const evlevation = +inputElevation.value;
+      const elevation = +inputElevation.value;
       // check if data is valid
-      if (!validInputsHelper[(distance, duration, evlevation)])
-        return alert('Inputs have to be a positive number');
+      if (
+        !validInputsHelper(distance, duration, elevation) ||
+        !isPositiveHelper(distance, duration)
+      )
+        return alert(
+          'All inputs have to be filled in and with positive numbers'
+        );
+
+      workout = new Cycling([lat, lng], distance, duration, elevation);
     }
     // add new object workout to array
+    this.#workouts.push(workout);
+    console.log(workout);
 
     //render workout on map as a marker
-
-    const { lat, lng } = this.#mapEvent.latlng;
-    console.log(lat, lng);
-
-    L.marker([lat, lng])
-      .addTo(this.#map)
-      .bindPopup(
-        L.popup({
-          autoClose: false,
-          closeOnClick: false,
-          className: 'running-popup', //custom css class
-        })
-      )
-      .setPopupContent(phrases())
-      .openPopup();
+    this.renderWorkoutMarker(workout);
 
     //hide form + clear input feilds
 
@@ -175,6 +181,20 @@ class App {
       inputSteps.value =
       inputElevation.value =
         '';
+  }
+
+  renderWorkoutMarker(workout) {
+    L.marker(workout.coords)
+      .addTo(this.#map)
+      .bindPopup(
+        L.popup({
+          autoClose: false,
+          closeOnClick: false,
+          className: `${workout.type}-popup`, //custom css class
+        })
+      )
+      .setPopupContent(phrases())
+      .openPopup();
   }
 }
 
