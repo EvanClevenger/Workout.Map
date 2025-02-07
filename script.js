@@ -135,11 +135,16 @@ class App {
         '';
 
     form.classList.add('hidden');
+    console.log(form);
   }
 
   _toggleWorkoutType() {
     inputElevation.closest('.form__row').classList.toggle('form__row--hidden'); //closest selects parents class
     inputSteps.closest('.form__row').classList.toggle('form__row--hidden');
+  }
+
+  _moveToMarker() {
+    form.addEventListener('click', console.log('clicked'));
   }
 
   _newWorkout(e) {
@@ -199,6 +204,8 @@ class App {
 
     //clears input feilds + hides form
     this._hideForm();
+
+    this._moveToMarker();
   }
 
   _renderWorkoutMarker(workout) {
