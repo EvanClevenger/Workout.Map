@@ -93,6 +93,8 @@ class App {
 
     //toggles steps and elevation based on the form type
     inputType.addEventListener('change', this._toggleWorkoutType);
+
+    containerWorkouts.addEventListener('click', this._moveToMarker);
   }
   _getPosition() {
     if (navigator.geolocation)
@@ -141,10 +143,6 @@ class App {
   _toggleWorkoutType() {
     inputElevation.closest('.form__row').classList.toggle('form__row--hidden'); //closest selects parents class
     inputSteps.closest('.form__row').classList.toggle('form__row--hidden');
-  }
-
-  _moveToMarker() {
-    form.addEventListener('click', console.log('clicked'));
   }
 
   _newWorkout(e) {
@@ -204,8 +202,6 @@ class App {
 
     //clears input feilds + hides form
     this._hideForm();
-
-    this._moveToMarker();
   }
 
   _renderWorkoutMarker(workout) {
@@ -220,6 +216,11 @@ class App {
       )
       .setPopupContent(phrases())
       .openPopup();
+  }
+
+  _moveToMarker(e) {
+    const workoutElement = e.target.closest('.workout');
+    console.log(workoutElement);
   }
 
   _renderWorkout(workout) {
