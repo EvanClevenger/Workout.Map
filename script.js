@@ -94,13 +94,16 @@ class App {
   #mapZoomLvl = 13;
 
   constructor() {
+    //get data from local storage
+    this._getLocalStorage();
+
+    //get usuers position
     this._getPosition(); //constructor is executed when page loads
 
+    // attach event handlers
     form.addEventListener('submit', this._newWorkout.bind(this)); //'this' on event handler function will always point to the DOM element
-
     //toggles steps and elevation based on the form type
     inputType.addEventListener('change', this._toggleWorkoutType);
-
     containerWorkouts.addEventListener('click', this._moveToMarker.bind(this));
   }
   _getPosition() {
@@ -127,6 +130,10 @@ class App {
 
     //handles clicks on map
     this.#map.on('click', this._showForm.bind(this));
+
+    this.#workouts.forEach(work => {
+      this._renderWorkoutMarker(work);
+    });
   }
 
   _showForm(mapE) {
@@ -209,6 +216,9 @@ class App {
 
     //clears input feilds + hides form
     this._hideForm();
+
+    // store workouts in local storage.
+    this._setLocalStorage();
   }
 
   _renderWorkoutMarker(workout) {
@@ -245,7 +255,7 @@ class App {
     });
 
     //using this public interface
-    workout.click();
+    // workout.click();
   }
 
   _renderWorkout(workout) {
@@ -291,6 +301,23 @@ class App {
           </div>`;
 
     form.insertAdjacentHTML('afterend', html);
+  }
+
+  _setLocalStorage() {
+    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+  }
+
+  _getLocalStorage() {
+    const data = JSON.parse(localStorage.getItem('workouts')); // parse turns JSON string into object
+    console.log(data);
+
+    if (!data) return;
+
+    this.#workouts = data;
+
+    this.#workouts.forEach(work => {
+      this._renderWorkout(work);
+    });
   }
 }
 
