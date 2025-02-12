@@ -22,6 +22,7 @@ class Workout {
   //feilds
   date = new Date();
   id = (Date.now() + '').slice(-10);
+  clicks = 0;
 
   constructor(coords, distance, duration) {
     this.coords = coords; // [lat , lng]
@@ -36,6 +37,10 @@ class Workout {
     this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
       months[this.date.getMonth()]
     } ${this.date.getDate()}`;
+  }
+
+  click() {
+    this.clicks++;
   }
 }
 
@@ -86,6 +91,8 @@ class App {
   #map; //private properties defined only in this object
   #mapEvent;
   #workouts = [];
+  #mapZoomLvl = 13;
+
   constructor() {
     this._getPosition(); //constructor is executed when page loads
 
@@ -94,7 +101,7 @@ class App {
     //toggles steps and elevation based on the form type
     inputType.addEventListener('change', this._toggleWorkoutType);
 
-    containerWorkouts.addEventListener('click', this._moveToMarker);
+    containerWorkouts.addEventListener('click', this._moveToMarker.bind(this));
   }
   _getPosition() {
     if (navigator.geolocation)
@@ -111,7 +118,7 @@ class App {
     const { longitude } = position.coords;
     const coords = [latitude, longitude];
 
-    this.#map = L.map('map').setView(coords, 13);
+    this.#map = L.map('map').setView(coords, this.#mapZoomLvl);
 
     L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
       attribution:
@@ -221,6 +228,24 @@ class App {
   _moveToMarker(e) {
     const workoutElement = e.target.closest('.workout');
     console.log(workoutElement);
+
+    if (!workoutElement) return;
+
+    const workout = this.#workouts.find(
+      work => work.id === workoutElement.dataset.id
+    );
+    console.log(workout);
+
+    //this is in leaflet documentation
+    this.#map.setView(workout.coords, this.#mapZoomLvl, {
+      animate: true,
+      pan: {
+        duration: 1,
+      },
+    });
+
+    //using this public interface
+    workout.click();
   }
 
   _renderWorkout(workout) {
