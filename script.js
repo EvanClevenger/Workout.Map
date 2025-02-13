@@ -151,7 +151,6 @@ class App {
         '';
 
     form.classList.add('hidden');
-    console.log(form);
   }
 
   _toggleWorkoutType() {
@@ -237,14 +236,12 @@ class App {
 
   _moveToMarker(e) {
     const workoutElement = e.target.closest('.workout');
-    console.log(workoutElement);
 
     if (!workoutElement) return;
 
     const workout = this.#workouts.find(
       work => work.id === workoutElement.dataset.id
     );
-    console.log(workout);
 
     //this is in leaflet documentation
     this.#map.setView(workout.coords, this.#mapZoomLvl, {
@@ -309,7 +306,6 @@ class App {
 
   _getLocalStorage() {
     const data = JSON.parse(localStorage.getItem('workouts')); // parse turns JSON string into object
-    console.log(data);
 
     if (!data) return;
 
